@@ -84,4 +84,7 @@ export default class MeldEncrypt extends Plugin {
 		await this.saveData(this.settings);
 	}
 
+	getMasterPassword(): string | undefined | null {
+		return this.settings.masterPassword
+	}
 }

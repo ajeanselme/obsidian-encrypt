@@ -3,6 +3,10 @@ import { IMeldEncryptPluginFeature } from "src/features/IMeldEncryptPluginFeatur
 import { SessionPasswordService } from "src/services/SessionPasswordService";
 import MeldEncrypt from "../main";
 import { IMeldEncryptPluginSettings } from "./MeldEncryptPluginSettings";
+import MasterPasswordModal from "../features/feature-master-password/MasterPasswordModal";
+import PasswordModal from "../features/feature-inplace-encrypt/PasswordModal";
+import {getHash} from "../features/feature-master-password/CryptoService";
+import {CryptoHelper} from "../services/CryptoHelper";
 
 export default class MeldEncryptSettingsTab extends PluginSettingTab {
 	plugin: MeldEncrypt;
@@ -67,6 +71,8 @@ export default class MeldEncryptSettingsTab extends PluginSettingTab {
 			}
 
 			pwTimeoutSetting.setName( `Remember Password (${timeoutString})` )
+
+			masterPasswordSeting.settingEl.show()
 		
 		}
 
@@ -119,6 +125,20 @@ export default class MeldEncryptSettingsTab extends PluginSettingTab {
 			})
 		;
 		
+		const masterPasswordSeting = new Setting(containerEl)
+			.setName('Master Password')
+			.setDesc('Set master password to remember')
+			.addButton( cb => {
+				cb
+					.setButtonText("Set Password")
+					.onClick(click => {
+						this.fetchPasswordFromUser().then(async password => {
+							this.settings.masterPassword = password ? getHash(password) : password;
+							await this.plugin.saveSettings();
+						})
+					})
+			})
+
 		updateRememberPasswordSettingsUi();
 
 		// build feature settings
@@ -128,4 +148,19 @@ export default class MeldEncryptSettingsTab extends PluginSettingTab {
 		
 	}
 
+
+	private async fetchPasswordFromUser(): Promise<string|null|undefined> {
+		// fetch password
+		return new Promise<string|null|undefined>( (resolve) => {
+			const pwModal = new MasterPasswordModal(
+				this.plugin.app,
+			);
+
+			pwModal.onClose = () =>{
+				resolve( pwModal.resultPassword );
+			}
+
+			pwModal.open();
+		} );
+	}
 }

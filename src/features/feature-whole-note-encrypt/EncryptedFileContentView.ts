@@ -5,6 +5,7 @@ import { UiHelper } from 'src/services/UiHelper';
 import { IFeatureWholeNoteEncryptSettings } from './IFeatureWholeNoteEncryptSettings';
 import { ObsidianEx } from 'src/services/ObsidianEx';
 import { CryptoHelperFactory } from 'src/services/CryptoHelperFactory';
+import MeldEncrypt from "../../main";
 
 enum EncryptedFileContentViewStateEnum{
 	init,
@@ -28,6 +29,8 @@ export class EncryptedFileContentView extends TextFileView {
 	private iconLockFile = 'lock';
 	private iconChangePassword = 'key';
 
+	plugin : MeldEncrypt
+
 	// State
 	settings : IFeatureWholeNoteEncryptSettings;
 	currentView : EncryptedFileContentViewStateEnum = EncryptedFileContentViewStateEnum.init;
@@ -43,9 +46,9 @@ export class EncryptedFileContentView extends TextFileView {
 	elActionEditView : HTMLElement;
 	elActionReadingView : HTMLElement;
 
-	constructor( leaf: WorkspaceLeaf, settings:IFeatureWholeNoteEncryptSettings ) {
+	constructor( leaf: WorkspaceLeaf, plugin: MeldEncrypt, settings:IFeatureWholeNoteEncryptSettings ) {
 		super(leaf);
-
+		this.plugin = plugin
 		this.settings = settings;
 		this.defaultEditNoteView = ( settings.defaultView as EditViewEnum ) ?? EditViewEnum.source;
 		this.currentEditNoteMode = this.defaultEditNoteView;
@@ -187,6 +190,28 @@ export class EncryptedFileContentView extends TextFileView {
 			}
 		}
 
+		const submitMasterPassword = async () => {
+			const masterPassword = this.plugin.getMasterPassword()
+			if(!masterPassword || masterPassword.length == 0) {
+				new Notice('No master password set', 2000);
+				return
+			}
+
+			this.encryptionPassword = masterPassword
+
+			// initial content of new note
+			if (!ObsidianEx.showInlineTitle){
+				this.currentEditorSourceText = `# ${this.file.basename}\n\n\n`;
+			}
+
+			await this.encodeAndSave();
+
+			SessionPasswordService.putByPath( { password: password, hint: hint }, this.file.path );
+
+			this.currentEditNoteMode = EditViewEnum.source;
+			this.refreshView( EncryptedFileContentViewStateEnum.editNote );
+		}
+
 		const bestGuessPassAndHint = SessionPasswordService.getByPath( this.file.path );
 		let password = bestGuessPassAndHint.password;
 		let confirm = '';
@@ -196,7 +221,7 @@ export class EncryptedFileContentView extends TextFileView {
 			container: inputContainer,
 			name:'Password:',
 			autoFocus : true,
-			initialValue: password,
+			initialValue: '',
 			onChangeCallback: (value) => {
 				password = value;
 				sPassword.setDesc( this.validatePassword(password) );
@@ -247,6 +272,12 @@ export class EncryptedFileContentView extends TextFileView {
 		new Setting(inputContainer)
 			.addButton( bc => {
 				bc
+					.setButtonText('Use Master Password')
+					.onClick( (ev) => submitMasterPassword() )
+				;
+			})
+			.addButton( bc => {
+				bc
 					.setCta()
 					.setIcon('go-to-file')
 					.setTooltip('Edit')
@@ -279,6 +310,21 @@ export class EncryptedFileContentView extends TextFileView {
 		});
 
 		new Setting(inputContainer)
+			.addButton( bc => {
+				bc
+					.setButtonText("Use Master Password")
+					.onClick( (evt) => {
+						const masterPassword = this.plugin.getMasterPassword()
+						if(!masterPassword || masterPassword.length == 0) {
+							new Notice('No master password set', 2000);
+							return
+						}
+
+						this.encryptionPassword = masterPassword
+						this.handleDecryptButtonClick()
+					})
+				;
+			})
 			.addButton( bc => {
 				bc
 					.setCta()
