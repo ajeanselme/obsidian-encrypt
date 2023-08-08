@@ -194,7 +194,6 @@ export class EncryptedFileContentView extends TextFileView {
 
 		const submitMasterPassword = async () => {
 			const masterPassword = this.plugin.getMasterPassword()
-			new Notice("submit " + this.plugin.getMasterPassword(), 2000)
 			if(!masterPassword || masterPassword.length == 0) {
 				new Notice('No master password set', 2000);
 				return
