@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import {Notice, Plugin} from 'obsidian';
 import MeldEncryptSettingsTab from './settings/MeldEncryptSettingsTab';
 import { IMeldEncryptPluginSettings } from './settings/MeldEncryptPluginSettings';
 import FeatureInplaceEncrypt from './features/feature-inplace-encrypt/FeatureInplaceEncrypt';
@@ -53,6 +53,7 @@ export default class MeldEncrypt extends Plugin {
 			rememberPassword: true,
 			rememberPasswordTimeout: 30,
 			rememberPasswordLevel: SessionPasswordService.LevelFullPath,
+			masterPassword: null,
 
 			featureWholeNoteEncrypt: {
 				addRibbonIconToCreateNote: true,

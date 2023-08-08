@@ -84,6 +84,7 @@ export class EncryptedFileContentView extends TextFileView {
 
 	private actionLockFile(){
 		this.encryptionPassword = '';
+		// @ts-ignore
 		SessionPasswordService.clearForPath( this.file.path );
 		this.refreshView(EncryptedFileContentViewStateEnum.decryptNote);
 	}
@@ -177,11 +178,12 @@ export class EncryptedFileContentView extends TextFileView {
 				
 				// initial content of new note
 				if (!ObsidianEx.showInlineTitle){
+					// @ts-ignore
 					this.currentEditorSourceText = `# ${this.file.basename}\n\n\n`;
 				}
 
 				await this.encodeAndSave();
-				
+				// @ts-ignore
 				SessionPasswordService.putByPath( { password: password, hint: hint }, this.file.path );
 
 				this.currentEditNoteMode = EditViewEnum.source;
@@ -192,6 +194,7 @@ export class EncryptedFileContentView extends TextFileView {
 
 		const submitMasterPassword = async () => {
 			const masterPassword = this.plugin.getMasterPassword()
+			new Notice("submit " + this.plugin.getMasterPassword(), 2000)
 			if(!masterPassword || masterPassword.length == 0) {
 				new Notice('No master password set', 2000);
 				return
@@ -201,17 +204,19 @@ export class EncryptedFileContentView extends TextFileView {
 
 			// initial content of new note
 			if (!ObsidianEx.showInlineTitle){
+				// @ts-ignore
 				this.currentEditorSourceText = `# ${this.file.basename}\n\n\n`;
 			}
 
 			await this.encodeAndSave();
-
+			// @ts-ignore
 			SessionPasswordService.putByPath( { password: password, hint: hint }, this.file.path );
 
 			this.currentEditNoteMode = EditViewEnum.source;
 			this.refreshView( EncryptedFileContentViewStateEnum.editNote );
 		}
 
+		// @ts-ignore
 		const bestGuessPassAndHint = SessionPasswordService.getByPath( this.file.path );
 		let password = bestGuessPassAndHint.password;
 		let confirm = '';
@@ -336,6 +341,7 @@ export class EncryptedFileContentView extends TextFileView {
 		;
 
 		// try to decode and go to edit mode if password is known
+		// @ts-ignore
 		const bestGuessPassAndHint = SessionPasswordService.getByPath( this.file.path );
 		this.encryptionPassword = bestGuessPassAndHint.password;
 		
@@ -414,6 +420,7 @@ export class EncryptedFileContentView extends TextFileView {
 		MarkdownRenderer.renderMarkdown(
 			this.currentEditorSourceText,
 			readingContainer,
+			// @ts-ignore
 			this.file.path,
 			this
 		).catch( reason => {
@@ -451,6 +458,7 @@ export class EncryptedFileContentView extends TextFileView {
 				this.encodeAndSave();
 				this.refreshView( EncryptedFileContentViewStateEnum.editNote );
 
+				// @ts-ignore
 				SessionPasswordService.putByPath( {password: newPassword, hint: newHint}, this.file.path );
 
 				new Notice('Password and Hint were changed');
@@ -604,6 +612,7 @@ export class EncryptedFileContentView extends TextFileView {
 		if (decryptedText === null){
 			new Notice('Decryption failed');
 		}else{
+			// @ts-ignore
 			SessionPasswordService.putByPath( {password: this.encryptionPassword, hint: this.hint }, this.file.path );
 			this.currentEditorSourceText = decryptedText;
 			this.refreshView( EncryptedFileContentViewStateEnum.editNote);

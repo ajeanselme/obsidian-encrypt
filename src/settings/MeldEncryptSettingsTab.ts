@@ -1,12 +1,10 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import {App, Notice, PluginSettingTab, Setting} from "obsidian";
 import { IMeldEncryptPluginFeature } from "src/features/IMeldEncryptPluginFeature";
 import { SessionPasswordService } from "src/services/SessionPasswordService";
 import MeldEncrypt from "../main";
 import { IMeldEncryptPluginSettings } from "./MeldEncryptPluginSettings";
-import MasterPasswordModal from "../features/feature-master-password/MasterPasswordModal";
-import PasswordModal from "../features/feature-inplace-encrypt/PasswordModal";
-import {getHash} from "../features/feature-master-password/CryptoService";
-import {CryptoHelper} from "../services/CryptoHelper";
+import MasterPasswordModal from "src/features/feature-master-password/MasterPasswordModal";
+import {getHash} from "src/features/feature-master-password/CryptoService";
 
 export default class MeldEncryptSettingsTab extends PluginSettingTab {
 	plugin: MeldEncrypt;
@@ -133,6 +131,11 @@ export default class MeldEncryptSettingsTab extends PluginSettingTab {
 					.setButtonText("Set Password")
 					.onClick(click => {
 						this.fetchPasswordFromUser().then(async password => {
+							if(!password || password.length == 0) {
+								this.settings.masterPassword = null;
+								return
+							}
+
 							this.settings.masterPassword = password ? getHash(password) : password;
 							await this.plugin.saveSettings();
 						})

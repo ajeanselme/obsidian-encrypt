@@ -1,8 +1,8 @@
-import { createHash } from "crypto"
+// @ts-ignore
+import sha256 from 'crypto-js/sha256';
+import {Notice} from "obsidian";
 
 export function getHash(password: string): string {
-    return createHash('sha256')
-        .update(password)
-        .update(createHash('sha256').update(password, 'utf8').digest('hex'))
-        .digest('hex');
+    new Notice("hashing " + password)
+    return sha256(sha256(password))
 }
